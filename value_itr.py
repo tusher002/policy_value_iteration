@@ -192,11 +192,12 @@ def PolicyImprovement(V, state, actions, rewards, theta, gamma):
 		V = PolicyEvaluation(policy, V, state, actions, rewards, theta, gamma)
 		
 		policy_stable = True
-		
+		old_policy = policy
 		for s in state:
 			cnt = s[0] * 4 + s[1]
 			if cnt != 15 and cnt != 14 and cnt != 7:
 				old_action = np.argmax(policy[cnt])
+				
 				pi_s = -10
 
 				for a in actions[s]:
@@ -220,6 +221,7 @@ def PolicyImprovement(V, state, actions, rewards, theta, gamma):
 					if pi > pi_s:
 						pi_s = pi
 						policy[cnt] = np.eye(4)[a_n]
+				pi_s = np.argmax(policy[cnt])
 					
 				if old_action != pi_s:
 					policy_stable = False
@@ -227,8 +229,6 @@ def PolicyImprovement(V, state, actions, rewards, theta, gamma):
 		iteration = iteration + 1
 		
 		if policy_stable:
-			break
-		if iteration >= 500:
 			break
 
 
@@ -247,6 +247,7 @@ def PolicyImprovement(V, state, actions, rewards, theta, gamma):
 		0, 0, 0, 0]])
 	pol_arr = []
 	print("Final Policy:")
+	#print(iteration)
 	pol_arr = np.reshape(np.argmax(policy, axis=1), X.shape)
 	pol_arr[0][15] = 10
 	pol_arr[0][7] = -1
