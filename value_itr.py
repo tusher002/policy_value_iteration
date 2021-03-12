@@ -1,23 +1,23 @@
 import numpy as np
 
-task = "Policy Iteration"
 '''==================================================
 Initial set up
 =================================================='''
-
+#Task defining
+task = "Policy Iteration"
 
 #Parameters
 theta = 0.0005
 gamma = 0.9
 
-#Define all states
+#States
 state=[]
 for i in range(4):
     for j in range(4):
         state.append((i,j))
 
 		
-#Define rewards for all states
+#Rewards
 rewards = {}
 for i in state:
     if i == (1,3):
@@ -29,7 +29,7 @@ for i in state:
     else:
         rewards[i] = 0
 
-#Dictionnary of possible actions. We have two "end" states (1,2 and 2,2)
+#Actions in each Sate
 actions = {
     (0,0):('D', 'R'),
     (0,1):('D', 'R', 'L'),
@@ -49,7 +49,7 @@ actions = {
 	#(3,3):('U', 'L'),
 }
 
-#Define an initial policy
+#Initial Policy
 policy={}
 for s in state:
 	if s in actions.keys():
@@ -59,7 +59,7 @@ for s in state:
 policy[(3,3)] = "G"	
 
 
-#Define initial value function 
+#Initial Value Function 
 V={}
 for s in state:
     if s in actions.keys():
@@ -71,6 +71,7 @@ for s in state:
     if s == (3,3):
         V[s]=1
 
+#Printing Intial Value Function
 print		
 V_old = V.copy()
 result_old = list(V_old.values())
@@ -80,11 +81,12 @@ for x in range(len(result_old)):
 	print(f"{result_old[x]}", end=" ")
 print()
 print()
+
+
 '''==================================================
 Value Iteration
 =================================================='''
-def ValueIteration(policy, V, state, actions, rewards, theta, gamma, NOISE):
-	
+def ValueIteration(policy, V, state, actions, rewards, theta, gamma):
 	iteration = 0
 	while 1:
 		delta = 0
@@ -106,19 +108,15 @@ def ValueIteration(policy, V, state, actions, rewards, theta, gamma, NOISE):
 							nxt = [s[0], s[1]+1]
 
 
-						#Calculate the value
 						nxt = tuple(nxt)
 						v = rewards[s] + (gamma * V[nxt])
-						if v > new_v: #Is this the best action so far? If so, keep it
+						if v > new_v:
 							new_v = v
 							policy[s] = a
-
-					#Save the best of all actions for the state                                
+                              
 					V[s] = new_v
 					delta = max(delta, np.abs(old_v - V[s]))
-
-
-		#See if the loop should stop now         
+    
 		if delta < theta:
 			break
 		iteration += 1
@@ -139,8 +137,12 @@ def ValueIteration(policy, V, state, actions, rewards, theta, gamma, NOISE):
 			print()
 		print(result_policy[x], end=" ")
 			
-			
-def PolicyEvaluation(policy, V, state, actions, rewards, theta, gamma, NOISE):
+
+'''==================================================
+Policy Iteration
+=================================================='''
+# Policy Evaluation
+def PolicyEvaluation(policy, V, state, actions, rewards, theta, gamma):
 	V_old = V.copy()
 	iteration = 0
 	while 1:
@@ -167,46 +169,36 @@ def PolicyEvaluation(policy, V, state, actions, rewards, theta, gamma, NOISE):
 						nxt = [s[0], s[1]+1]
 						a_n = 3
 
-
-					#Calculate the value
 					nxt = tuple(nxt)
 					v += policy[cnt][a_n] * (rewards[s] + (gamma * V[nxt]))
 					new_v = v
-
-				#Save the best of all actions for the state                                
+                              
 				V[s] = new_v
 				delta = max(delta, np.abs(old_v - V[s]))
-
-
-		#See if the loop should stop now         
+      
 		if delta < theta:
 			break
 		iteration += 1
 	
 	return V
 		
-		
-		
-		
-def PolicyImprovement(V, state, actions, rewards, theta, gamma, NOISE):
+# Policy Improvement
+def PolicyImprovement(V, state, actions, rewards, theta, gamma):
 	
 
 	policy = np.ones([len(state), int(len(state)**(1/len(state[0])))]) / int(len(state)**(1/len(state[0])))
 	iteration = 0
 	while 1:
-		V = PolicyEvaluation(policy, V, state, actions, rewards, theta, gamma, NOISE)
+		V = PolicyEvaluation(policy, V, state, actions, rewards, theta, gamma)
 		
 		policy_stable = True
 		
 		for s in state:
 			cnt = s[0] * 4 + s[1]
-			# The best action we would take under the current policy
 			if cnt != 15 and cnt != 14 and cnt != 7:
 				old_action = np.argmax(policy[cnt])
 				pi_s = -10
-				
-				# Find the best action by one-step lookahead
-				# Ties are resolved arbitarily
+
 				for a in actions[s]:
 					if a == 'U':
 						a_n = 0
@@ -221,21 +213,17 @@ def PolicyImprovement(V, state, actions, rewards, theta, gamma, NOISE):
 						nxt = [s[0], s[1]+1]
 						a_n = 3
 
-					#Calculate the value
 					nxt = tuple(nxt)
 					pi = rewards[s] + (gamma * V[nxt])
 
 					
-					if pi > pi_s: #Is this the best action so far? If so, keep it
+					if pi > pi_s:
 						pi_s = pi
 						policy[cnt] = np.eye(4)[a_n]
 					
-				
-				# Greedily update the policy
 				if old_action != pi_s:
 					policy_stable = False
-			
-			# If the policy is stable we've found an optimal policy. Return it
+
 		iteration = iteration + 1
 		
 		if policy_stable:
@@ -279,11 +267,14 @@ def PolicyImprovement(V, state, actions, rewards, theta, gamma, NOISE):
 		else:
 			print("-", end=" ")
 	
-	
+
+'''==================================================
+Task Management
+=================================================='''	
 if task == "Value Iteration":
-	ValueIteration(policy, V, state, actions, rewards, theta, gamma, NOISE)
+	ValueIteration(policy, V, state, actions, rewards, theta, gamma)
 	
 		
 elif task == "Policy Iteration":
-	PolicyImprovement(V, state, actions, rewards, theta, gamma, NOISE)
+	PolicyImprovement(V, state, actions, rewards, theta, gamma)
 	
